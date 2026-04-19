@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Stupid File Converter</title>
+    
+    <!-- ── FONTS ── Let's grab some cool looking text fonts from Google! -->
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Grab our paint bucket (CSS) that colors everything on the page -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* ── Login card styles ── */
+
+        /* This handles the floating glass box that holds the login area */
+        .login-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.15); /* Slightly see-through white */
+            backdrop-filter: blur(20px);           /* Magically blurs the fish pond behind it! */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;                   /* Curved corners */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.2);
+            padding: 40px;
+            z-index: 10;
+            width: 90%;
+            max-width: 420px;
+        }
+
+        /* ── HOW WE CHANGE SCENES ── */
+        /* By default, sections of the page are completely hidden (display: none) */
+        .step { display: none; }
+        
+        /* But if we add the ".active" class, they suddenly appear! (display: block) */
+        .step.active { display: block; }
+
+        /* The email typing box */
+        .login-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            box-sizing: border-box;
+            margin-top: 8px;
+            transition: border-color 0.2s;
+        }
+
+        /* Make it glow yellow when you click it! */
+        .login-input:focus { border-color: #ffd045; }
+        .login-input::placeholder { color: rgba(255,255,255,0.4); }
+
+        /* Tiny text above the text boxes */
+        .field-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        /* The red box that yells at you if you type a bad email */
+        .login-error {
+            background: rgba(255,0,0,0.2);
+            border: 1px solid #ff4444;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #ffcccc;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* The row of 6 boxes for the secret code */
+        .otp-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* What each 6-digit box looks like */
+        .otp-box {
+            width: 50px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffd045;
+            font-size: 28px;
+            font-family: 'Courier New', monospace;
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        /* When you click a code box, it jumps up! */
+        .otp-box:focus {
+            border-color: #ffd045;
+            transform: scale(1.1);
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Link to go backwards */
+        .back-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: none; border: none; font-family: 'Inter', sans-serif;
+        }
+
+        .back-link:hover { color: #ffffff; text-decoration: underline; }
+
+        /* The bottom text about resending the code */
+        .resend-row {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .resend-btn {
+            background: none; border: none;
+            color: #ffd045; font-weight: 600; cursor: pointer;
+            font-family: 'Inter', sans-serif; padding: 0 4px;
+        }
+
+        .resend-btn:disabled { color: rgba(255,255,255,0.3); cursor: not-allowed; text-decoration: none; }
+        .resend-btn:hover:not(:disabled) { text-decoration: underline; }
+
+        /* The big Party Popper emoji when you log in! */
+        .success-icon {
+            font-size: 60px; text-align: center; margin-bottom: 10px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+         /* How the Party Popper emoji jumps onto the screen */
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .success-title {
+            font-family: 'Luckiest Guy', cursive; font-size: 28px; color: #4ade80;
+            text-align: center; -webkit-text-stroke: 1px #1a1a1a;
+            text-shadow: 2px 2px 0 #1a1a1a, 3px 3px 0 #1a1a1a; margin-bottom: 8px;
+        }
+
+        /* ── Mobile Performance Fixes ── */
+        @media (max-width: 768px) {
+            /* Backdrop filters are incredibly slow on mobile when layered over an animated canvas! */
+            .login-panel {
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                background: rgba(30, 80, 95, 0.95);
+                padding: 24px; /* Make the big box smaller and tighter */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- This is the invisible swimming pool where the fish live! -->
+    <canvas id="pond"></canvas>
+
+    <!-- Top Navigation -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+        <a href="/login" class="btn" style="padding: 10px 20px; font-size: 14px; text-decoration: none; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); color: white; cursor: default; pointer-events: none;">
+            🔒 LOG IN
+        </a>
+    </div>
+
+    <!-- The floating glass box -->
+    <div class="login-panel">
+        
+        <div class="title-container" style="margin-bottom: 24px;">
+            <h1 class="cartoon-title">STUPID FILE</h1>
+            <h2 class="cartoon-subtitle">CONVERTER</h2>
+        </div>
+
+        <!-- ══ SCENE 1: Enter Email ══ -->
+        <!-- Because it says class="step active", this is the only thing we see first! -->
+        <div class="step active" id="step-email">
+            <p style="text-align:center; color:white; margin-bottom:20px; font-size: 15px;">Please log in with your email to continue.</p>
+            <p class="field-label">Your Email Address</p>
+            <input class="login-input" type="email" id="emailInput" placeholder="you@gmail.com" />
+            
+            <div class="login-error" id="emailError"></div>
+            
+            <!-- When you click this button, it tells the browser to run 'sendEmailCode()' -->
+            <button class="btn" style="margin-top: 20px;" onclick="sendEmailCode()">SEND CODE</button>
+        </div>
+
+        <!-- ══ SCENE 2: The 6-Digit Code ══ -->
+        <div class="step" id="step-otp">
+            <p style="text-align:center; color:white;">Enter the 6-digit code sent to</p>
+            <p id="otpSentTo" style="text-align:center; color:#ffd045; font-weight:bold;"></p>
+            
+            <!-- 6 tiny boxes for the 6 numbers -->
+            <div class="otp-row">
+                <input class="otp-box" type="text" maxlength="1" id="o1" oninput="otpInput(this,'o2')" onkeydown="otpBack(event,this,'')">
+                <input class="otp-box" type="text" maxlength="1" id="o2" oninput="otpInput(this,'o3')" onkeydown="otpBack(event,this,'o1')">
+                <input class="otp-box" type="text" maxlength="1" id="o3" oninput="otpInput(this,'o4')" onkeydown="otpBack(event,this,'o2')">
+                <input class="otp-box" type="text" maxlength="1" id="o4" oninput="otpInput(this,'o5')" onkeydown="otpBack(event,this,'o3')">
+                <input class="otp-box" type="text" maxlength="1" id="o5" oninput="otpInput(this,'o6')" onkeydown="otpBack(event,this,'o4')">
+                <input class="otp-box" type="text" maxlength="1" id="o6" oninput="otpInput(this,'')"   onkeydown="otpBack(event,this,'o5')">
+            </div>
+            
+            <div class="login-error" id="otpError"></div>
+            
+            <button class="btn" style="margin-top: 20px;" onclick="verifyOTP()">VERIFY CODE</button>
+            
+            <!-- The button that counts down from 60 seconds -->
+            <div class="resend-row">
+                Didn't get it? <button class="resend-btn" id="resendBtn" onclick="resendCode()" disabled>Resend</button> <span id="countdown"></span>
+            </div>
+            
+            <div style="text-align:center;">
+                <button class="back-link" onclick="goBackToInput()">← Change email</button>
+            </div>
+        </div>
+
+        <!-- ══ SCENE 3: Success! ══ -->
+        <div class="step" id="step-success">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">LOGIN SUCCESSFUL!</div>
+            <!-- Click this to go to the main page! -->
+            <a href="/" class="btn" style="display:block; text-align:center; text-decoration:none; margin-top:20px;">GO TO CONVERTER 🐟</a>
+        </div>
+        
+    </div>
+
+    <!-- Turn on the animated fish pond! -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- ── WEBPAGE BRAIN (Javascript) ── -->
+    <script>
+        let correctOTP = '';       // We will hide the real secret code in this box
+        let countdownTimer = null; // This will hold the countdown clock
+
+        // ── SCENE CHANGER ──
+        // Hides all steps, and un-hides the one we want to look at
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+            
+            // Hide any scary red error messages from the previous screen
+            document.querySelectorAll('.login-error').forEach(el => el.style.display = 'none');
+        }
+
+        // If they type the wrong email and want to go backward
+        function goBackToInput() {
+            showStep('step-email');
+            clearInterval(countdownTimer); // Stop the clock!
+        }
+
+        // Create a random 6 digit number between 100,000 and 999,999
+        function generateOTP() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // ── SENDING THE EMAIL ──
+        function sendEmailCode() {
+            const email = document.getElementById('emailInput').value.trim();
+            const errorBox = document.getElementById('emailError');
+
+            // Do they have an '@' symbol?
+            if (!email || !email.includes('@')) {
+                showError(errorBox, 'Please enter a valid email address.');
+                return;
+            }
+
+            errorBox.style.display = 'none';
+            correctOTP = generateOTP(); // Boom, secret code created!
+
+            // ── CALLING THE PYTHON SERVER ──
+            // Tell Python: "Hey! Wake up and send this secret code to this email!"
+            fetch('/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ method: 'email', contact: email, otp: correctOTP })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // If Python says "Okay, I sent it!"
+                if (data.success) {
+                    document.getElementById('otpSentTo').textContent = email;
+                    clearOTPBoxes();              // Wipe the boxes clean
+                    showStep('step-otp');         // Go to Scene 2 (The 6 boxes)!
+                    document.getElementById('o1').focus(); // Automatically select box 1
+                    startCountdown(60);           // Start the 60 second timer
+                } else {
+                    // Python had an error!
+                    showError(errorBox, data.error || 'Failed to send code.');
+                }
+            })
+            .catch(() => showError(errorBox, 'Network error. Please try again.'));
+        }
+
+        // ── AUTO-MOVE TYPING ──
+        // If they type a number, quickly jump their cursor to the next box!
+        function otpInput(current, nextId) {
+            if (current.value.length === 1 && nextId) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        // ── AUTO-MOVE BACKSPACE ──
+        // If they hit delete, jump backwards!
+        function otpBack(e, current, prevId) {
+            if (e.key === 'Backspace' && current.value === '' && prevId) {
+                document.getElementById(prevId).focus();
+            }
+        }
+
+        // Wipe all 6 boxes empty
+        function clearOTPBoxes() {
+            for (let i = 1; i <= 6; i++) document.getElementById('o' + i).value = '';
+            document.getElementById('otpError').style.display = 'none';
+        }
+
+        // ── CHECKING THE CODE ──
+        function verifyOTP() {
+            let entered = ''; // Glue all 6 boxes together into one word!
+            for (let i = 1; i <= 6; i++) entered += document.getElementById('o' + i).value;
+            
+            const errorBox = document.getElementById('otpError');
+            const contactEmail = document.getElementById('otpSentTo').textContent;
+
+            // DID THEY GET IT RIGHT?
+            if (entered === correctOTP) {
+                // YAY! Tell Python to give them the VIP Pass!
+                fetch('/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: contactEmail })
+                }).then(() => {
+                    clearInterval(countdownTimer); // Stop the clock
+                    showStep('step-success');      // Go to Scene 3 (Success!)
+                });
+            } else {
+                // WRONG! Erase everything and yell at them!
+                clearOTPBoxes(); // Wipe the boxes FIRST
+                showError(errorBox, 'Incorrect code. Try again.'); // Show the error SECOND!
+                document.getElementById('o1').focus();
+            }
+        }
+
+        // ── THE 60 SECOND CLOCK ──
+        function startCountdown(seconds) {
+            const resendBtn = document.getElementById('resendBtn');
+            const countdownSpan = document.getElementById('countdown');
+            resendBtn.disabled = true; // Don't let them click resend yet!
+            let remaining = seconds;
+            countdownSpan.textContent = 'in ' + remaining + 's';
+
+            // Once every second (1000 milliseconds)...
+            countdownTimer = setInterval(() => {
+                remaining--; // Minus one second
+                
+                if (remaining <= 0) {
+                    clearInterval(countdownTimer); // Stop counting
+                    resendBtn.disabled = false;    // Turn the button back on!
+                    countdownSpan.textContent = '';
+                } else {
+                    countdownSpan.textContent = 'in ' + remaining + 's';
+                }
+            }, 1000);
+        }
+
+        // Give them a new code if they click Resend
+        function resendCode() {
+            correctOTP = generateOTP();
+            const contact = document.getElementById('otpSentTo').textContent;
+            
+            // Tell Python to send the new code
+            fetch('/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ method: 'email', contact: contact, otp: correctOTP })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    clearOTPBoxes();
+                    document.getElementById('o1').focus();
+                    startCountdown(60); // Restart the clock!
+                }
+            });
+        }
+
+        // Puts a little warning message inside the red error boxes
+        function showError(box, msg) {
+            box.textContent = '⚠️ ' + msg;
+            box.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stupid File Converter</title>
+
+    <!-- ── FONTS ── Grab fun, thick cartoon fonts from Google! -->
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Grab our paint bucket (CSS) that colors everything on the page -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- This is the invisible swimming pool where the fish live! -->
+    <canvas id="pond"></canvas>
+
+    <!-- ── TOP RIGHT PROFILE MENU ── -->
+    <!-- When you click this, the 'logoutDropdown' box appears or disappears! -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100;" onclick="toggleMenu()">
+
+        <!-- This is the dark pill shape that shows your email -->
+        <div style="background: rgba(0,0,0,0.5); padding: 10px 16px; border-radius: 20px; color: white; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); font-family: 'Inter', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s;"
+            onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">
+            👤 {{ user_email }} <span style="font-size: 10px; opacity: 0.7;">▼</span>
+        </div>
+
+        <!-- This is the hidden box with the red button inside that drops down -->
+        <div id="logoutDropdown"
+            style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); min-width: 160px;">
+            <a href="/logout"
+                style="display: block; padding: 12px 16px; color: #ffcccc; text-decoration: none; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; background: rgba(255,0,0,0.2); border-radius: 10px; text-align: center; border: 1px solid #ff4444; transition: all 0.2s;"
+                onmouseover="this.style.background='rgba(255,0,0,0.5)'"
+                onmouseout="this.style.background='rgba(255,0,0,0.2)'">
+                🚪 LOG OUT
+            </a>
+        </div>
+    </div>
+
+    <!-- ── THE MAIN CONVERTER BOX ── -->
+    <!-- The floating glass box in the center of the screen -->
+    <div class="glass-panel">
+
+        <!-- Title -->
+        <div class="title-container">
+            <h1 class="cartoon-title">STUPID FILE</h1>
+            <h2 class="cartoon-subtitle">CONVERTER</h2>
+        </div>
+
+        <!-- ── THE CONVERSION FORM ── -->
+        <!-- When you hit submit, it sends the file and choices to Python! -->
+        <form method="POST" enctype="multipart/form-data" id="frm">
+
+            <!-- Where you pick what file types to convert -->
+            <div class="row">
+
+                <!-- FROM format -->
+                <div class="field">
+                    <label>From Format</label>
+                    <select name="input_fmt" id="inputFormat" onchange="preventSameChoices()">
+                        <option value="pdf">PDF</option>
+                        <option value="docx">Word (.docx / .doc)</option>
+                    </select>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <!-- TO format -->
+                <!-- TO format -->
+                <div class="field">
+                    <label>To Output</label>
+                    <select name="output_fmt" id="outputFormat">
+                        <option id="outWord" value="docx">Word (.docx / .doc)</option>
+                        <option id="outPdf" value="pdf">PDF</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- ── THE DRAG & DROP ZONE ── -->
+            <div class="upload-area" id="uploadArea">
+                <input type="file" name="file" id="fileInput" accept=".pdf,.doc,.docx" required onchange="updateFileName()">
+                <!-- An icon of a file with an arrow -->
+                <div class="upload-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <p>Drag & Drop your file here</p>
+                <!-- Shows the name of the file you picked -->
+                <div id="fileName"></div>
+            </div>
+
+            <!-- The Big Button -->
+            <button type="submit" class="btn" id="submitBtn">
+                CONVERT FILE STUPIDLY FAST
+            </button>
+
+        </form>
+
+        <!-- ── THE LOADING SCREEN ── -->
+        <!-- Hidden by default. Pops up when the Big Button is clicked! -->
+        <div id="loading">
+            <div class="spinner"></div> <!-- The spinning circle -->
+            <div class="loading-text">Diving into the pond to convert your file...</div>
+            <button type="button" class="btn cancel-btn" onclick="window.location.href='/'">
+                CANCEL CONVERSION!
+            </button>
+        </div>
+
+        <!-- ── ERROR MESSAGES ── -->
+        <!-- Hidden by default. If Python gets mad, it puts the message here. -->
+        <div class="err-box" id="errorBox" style="display: {% if error %}block{% else %}none{% endif %};">
+            ⚠️ {{ error }}
+        </div>
+
+        <!-- ── SUCCESS BOX ── -->
+        <!-- Hidden by default. Shows up when the file is ready to download. -->
+        <div class="suc-box" id="successBox" style="display: {% if download_token %}block{% else %}none{% endif %};">
+            <p>✅ Conversion successful!</p>
+            <a class="dl-btn"
+                href="{% if download_token %}{{ url_for('download', token=download_token) }}{% else %}#{% endif %}">
+                ⬇️ Download
+            </a>
+        </div>
+
+
+
+    </div>
+
+    <!-- Turn on the animated fish pond! -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- ── WEBPAGE BRAIN (Javascript) ── -->
+    <script>
+        // ------------------------------------------------------------------
+        // Open and close the profile menu
+        // ------------------------------------------------------------------
+        function toggleMenu() {
+            const menu = document.getElementById('logoutDropdown');
+            
+            // Is it currently hidden?
+            if (menu.style.display === 'none') {
+                // If yes, show it!
+                menu.style.display = 'block';
+            } else {
+                // If no, hide it!
+                menu.style.display = 'none';
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Make sure they can't convert PDF to PDF!
+        // ------------------------------------------------------------------
+        function preventSameChoices() {
+            const input_choice = document.getElementById("inputFormat").value;
+            const outPdf = document.getElementById("outPdf");
+            const outWord = document.getElementById("outWord");
+            
+            if (input_choice === "pdf") {
+                outPdf.disabled = true;    // Turn PDF off
+                outWord.disabled = false;  // Turn Word on
+                outWord.selected = true;   // Auto-select Word
+            } else {
+                outWord.disabled = true;   // Turn Word off
+                outPdf.disabled = false;   // Turn PDF on
+                outPdf.selected = true;    // Auto-select PDF
+            }
+        }
+        
+        // Run it immediately when you open the website to lock it right away!
+        preventSameChoices();
+
+
+        // ------------------------------------------------------------------
+        // Show the name of the file if you pick one!
+        // ------------------------------------------------------------------
+        function updateFileName() {
+            const fileUploadBox = document.getElementById("fileInput");
+            const fileNameText = document.getElementById("fileName");
+            
+            // Did they actually attach a file?
+            if (fileUploadBox.files.length > 0) {
+                // Yes! Show the name of the first file
+                fileNameText.textContent = fileUploadBox.files[0].name;
+            } else {
+                // No! They clicked cancel. Empty the text box.
+                fileNameText.textContent = "";
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Make the drag & drop zone glow yellow when you hover a file over it
+        // ------------------------------------------------------------------
+        const uploadArea = document.getElementById("uploadArea");
+
+        uploadArea.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            uploadArea.classList.add("dragover");
+        });
+
+        uploadArea.addEventListener("dragleave", function () {
+            uploadArea.classList.remove("dragover");
+        });
+
+        // Catch the file when you drop it!
+        uploadArea.addEventListener("drop", function (e) {
+            e.preventDefault();
+            uploadArea.classList.remove("dragover");
+
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                // Secretly put the dropped file into the invisible file input box
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById("fileInput").files = dataTransfer.files;
+                document.getElementById("fileName").textContent = file.name;
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // What to do when the Big Button is clicked
+        // ------------------------------------------------------------------
+        document.getElementById("frm").addEventListener("submit", function () {
+
+            // Wait just a split second...
+            setTimeout(function () {
+                // 1. Turn the button off so they can't click it twice
+                document.getElementById("submitBtn").disabled = true;
+                document.getElementById("submitBtn").textContent = "SPLASHING...";
+
+                // 2. Hide everything else and show the spinning circle!
+                document.getElementById("loading").style.display = "block";
+                document.getElementById("successBox").style.display = "none";
+                document.getElementById("errorBox").style.display = "none";
+            }, 0);
+        });
+    </script>
+
+</body>
+
+</html>
