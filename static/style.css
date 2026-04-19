@@ -1,0 +1,440 @@
+/* ── THE WEBPAGE PAINTBOX ── */
+/* This file decides what colors, shapes, and sizes everything on the website should be! */
+
+/* ── Screen Background ── */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevent scrolling down */
+    overscroll-behavior: none; /* Prevents elastic bouncing on phones */
+    background-color: #5ba3b5;   /* The nice blue color of the pond water */
+    font-family: 'Inter', sans-serif;
+}
+
+/* ── The Invisible Fish Pond ── */
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Puts the fish BEHIND everything else */
+    cursor: crosshair; /* Changes the mouse pointer into a plus sign */
+    touch-action: none; /* Prevents sliding the screen around by accident! */
+}
+
+/* ── The Floating Glass Box ── */
+.glass-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* Move it exactly into the center of the screen */
+    transform: translate(-50%, -50%);
+
+    /* Give it that cool frosted glass look! */
+    background: rgba(255, 255, 255, 0.15); /* Slightly see-through white */
+    backdrop-filter: blur(20px);           /* Magically blurs the fish behind it */
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 24px;                   /* Beautiful curved corners */
+    
+    /* Make it look like it's glowing and floating */
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+
+    padding: 40px;
+    z-index: 10; /* Put it IN FRONT of the fish */
+    width: 90%;
+    max-width: 480px;
+    max-height: 85vh; /* If the screen gets too small, don't let it overflow */
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Make the scrollbar look pretty and invisible when not in use */
+.glass-panel::-webkit-scrollbar       { width: 8px; }
+.glass-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.glass-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 10px; }
+.glass-panel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.6); }
+
+/* ── The Big Cartoon Title ── */
+.title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Tilt the title slightly sideways like a sticker! */
+    transform: rotate(-1.5deg);
+    margin-bottom: 20px;
+}
+
+/* "STUPID FILE" text */
+.cartoon-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 55px;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 0;
+    line-height: 0.9;
+    text-align: center;
+    /* Give it a thick black cartoon border */
+    -webkit-text-stroke: 3px #1f1f1f;
+    /* Give it a super deep chunky 3D shadow! */
+    text-shadow:
+        2px 2px 0 #1f1f1f, 3px 3px 0 #1f1f1f,
+        4px 4px 0 #1f1f1f, 5px 5px 0 #1f1f1f,
+        6px 6px 0 #1f1f1f, 7px 7px 0 #1f1f1f;
+}
+
+/* "CONVERTER" text */
+.cartoon-subtitle {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 35px;
+    color: #ffd045; /* Yellow! */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+    margin-top: 5px;
+    text-align: center;
+    -webkit-text-stroke: 2px #1f1f1f;
+    text-shadow:
+        1px 1px 0 #1f1f1f, 2px 2px 0 #1f1f1f,
+        3px 3px 0 #1f1f1f, 4px 4px 0 #1f1f1f;
+}
+
+/* ── The Forms & Boxes ── */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Put a little gap between everything */
+}
+
+/* Holds the two dropdown menus side by side */
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* The tiny labels above the boxes */
+.field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+/* The arrow pointing from one box to another */
+.arrow {
+    padding-bottom: 12px;
+    font-size: 18px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ── The Dropdown Selection Boxes ── */
+select {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: border-color 0.2s, background 0.2s; /* Make them smoothly change colors */
+}
+
+/* Glowing yellow when you click them! */
+select:focus,
+select:hover {
+    border-color: #ffd045;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* The options inside the dropdown */
+select option {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+/* ── The 'Drag and Drop' Zone ── */
+.upload-area {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    border: 2px dashed rgba(255, 255, 255, 0.6); /* Dotted border line like a coupon */
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.15);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+
+/* When you hover over it, make it pop out and turn yellow! */
+.upload-area:hover,
+.upload-area.dragover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #ffd045;
+    color: #ffffff;
+    transform: scale(1.02); /* Make it 2% bigger */
+}
+
+/* The actual invisible file button sits over the whole area to catch clicks */
+#fileInput {
+    position: absolute;
+    inset: 0;
+    opacity: 0; /* Completely invisible! */
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+/* The little white icon in the middle */
+.upload-icon {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    transition: transform 0.3s, color 0.3s;
+}
+
+/* Jump up slightly when hovered */
+.upload-area:hover .upload-icon {
+    transform: translateY(-5px); 
+    color: #ffd045;
+}
+
+/* Where the name of the file shows up */
+#fileName {
+    font-size: 12px;
+    color: #ffd045;
+    margin-top: 5px;
+    min-height: 15px;
+    font-weight: bold;
+}
+
+/* ── The Big Cartoon Buttons ── */
+.btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #ffea00, #ffba08); /* A nice yellow fade */
+    color: #1a1a1a;
+    border: 3px solid #1a1a1a;
+    border-radius: 15px;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 4px 4px 0px #1a1a1a; /* Thick chunky shadow! */
+    transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+
+/* When you touch it, slide it up slightly to look alive */
+.btn:hover {
+    background: linear-gradient(135deg, #ffba08, #ffb000);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #1a1a1a;
+}
+
+/* When you click it, squish it down like a real button! */
+.btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+}
+
+/* When the button is broken or busy */
+.btn:disabled {
+    opacity: 0.8;
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* The big red Cancel button */
+.cancel-btn {
+    background: linear-gradient(135deg, #ff5757, #d00000);
+    margin-top: 15px;
+    font-size: 15px;
+    padding: 12px;
+}
+
+.cancel-btn:hover {
+    background: linear-gradient(135deg, #ff3333, #a00000);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #1a1a1a;
+}
+
+/* ── The Loading Circle Screen ── */
+#loading {
+    display: none;
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* Draws a cool spinning circle using just math! */
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top: 3px solid #ffd045; /* The yellow slice that spins */
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    animation: spin 1s linear infinite; /* Spin forever! */
+}
+
+/* Tells it how to rotate 360 degrees */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* ── Python's Error Box ── */
+.err-box {
+    margin-top: 15px;
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 10px;
+    padding: 12px;
+    color: #ffcccc;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ── The Happy Green Success Box ── */
+.suc-box {
+    margin-top: 15px;
+    background: rgba(0, 255, 100, 0.1);
+    border: 1px solid #4ade80;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.suc-box p {
+    color: #4ade80;
+    font-weight: 600;
+    margin: 0 0 10px;
+    font-size: 15px;
+}
+
+/* Make the download button green! */
+.dl-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 12px;
+    border: 3px solid #1a1a1a;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0px #1a1a1a;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+
+.dl-btn:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px #1a1a1a;
+}
+
+.dl-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+}
+
+/* ── The tiny help instructions at the very bottom ── */
+.info-title {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #ffd045;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.info-group {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.info-group h4 {
+    margin: 0 0 4px;
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.info-group p {
+    margin: 0;
+    font-size: 10px;
+    color: #cccccc;
+    line-height: 1.4;
+}
+
+.info-note {
+    font-size: 10px;
+    color: #aaaaaa;
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.4;
+}
+
+/* ── Mobile Performance Fixes ── */
+@media (max-width: 768px) {
+    /* Backdrop filters (the blurry glass effect) are INCREDIBLY slow on mobile phones
+       when there is an animation behind them. We turn it off for phones and make 
+       the background a bit more solid so the text is still readable! */
+    .glass-panel {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(30, 80, 95, 0.95); /* A nice solid color to contrast with the light text */
+        padding: 20px; /* Make the big box smaller */
+    }
+    
+    /* Shrink the big cartoon text a bit */
+    .cartoon-title { font-size: 38px; }
+    .cartoon-subtitle { font-size: 24px; }
+}
